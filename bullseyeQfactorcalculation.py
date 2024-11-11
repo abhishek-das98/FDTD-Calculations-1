@@ -9,7 +9,7 @@ Original file is located at
 
 !pip install tidy3d
 import tidy3d.web as web
-web.configure("wclpAIGF4JlvJlABZs9BOY3yg53fsAAd54VzLiVcCFPu7pFC")
+web.configure("wclpAIGF4JlvJlABZs9BOY3yg53fsAAd54VzLiVcCFPu7pFC") # API Key for my personal account on Tidy3D, This will vary for different acccounts
 
 !pip install gdstk
 
@@ -33,20 +33,18 @@ monitor_freq = td.constants.C_0/monitor_lambda
 dl = 0.02 # uniform sampling mesh size
 
 sim_size = Lx, Ly, Lz = (3.5, 3.5, 2)
-offset_monitor = 0 # monitor position in the vertical direction
 
-t_start = 0  # from inspection
+t_start = 0  # from inspection, you can check for different t_start if the quality factor changes at all
 t_stop = 4e-12
 
-vacuum = td.Medium(permittivity = 1, name = 'vacuum')
+vacuum = td.Medium(permittivity = 1, name = 'vacuum') # For inverse design calculations, take the permittivity to be a little higher
 GaAs_permittivity = 3.55**2
 GaAs = td.Medium(permittivity = GaAs_permittivity, name = 'GaAs')
 
 freq0 = 302.675e12 # taken from the Lumerical file supplied by Dr. Dima
-fwidth = 144.131e12 #
-freq0 = 302.675e12 # taken from the Lumerical file supplied by Dr. Dima
+fwidth = 144.131e12 # taken from the Lumerical file supplued by Dr. Dima
 
-slab_side_length = 10
+slab_side_length = 10 # arbitrary, ultimately cuts down to the simulation size
 slab_height = 0.2
 
 slab = td.Structure(
@@ -63,10 +61,10 @@ lib = gdstk.Library()
 # Geometry must be placed in cells.
 cell = lib.new_cell("BULLSEYE")
 
-central_inner_radius = 0.355                   #initial inner radius
-ring_width = 0.07                     #rings' width
+central_inner_radius = 0.355           #initial inner radius
+ring_width = 0.07                    #rings' width
 ring_height = 0.2                   #rings' height
-theta1 = 3 * np.pi / 180
+theta1 = 3 * np.pi / 180            # bridge angle is 3 degrees
 theta2 = 87 * np.pi / 180
 ringsNumbers = 7
 vertexIncrement = 0.1075
@@ -151,7 +149,7 @@ sim_resonance = td.Simulation(
     structures = [slab, etch],
     medium = vacuum,
     shutoff = 1e-7,
-    symmetry = [-1, 1, 0]
+    symmetry = [-1, 1, 0]   # PEC Symmetry along the x-direction, PMC symmetry along the y-direction; This will be applicable for x-polarized light
 )
 
 sim_resonance.plot_3d()
