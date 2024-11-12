@@ -34,7 +34,7 @@ dl = 0.02 # uniform sampling mesh size
 
 sim_size = Lx, Ly, Lz = (3.5, 3.5, 2)
 
-t_start = 0  # from inspection, you can check for different t_start if the quality factor changes at all
+t_start = 0.2e-12  # from inspection, you can check for different t_start if the quality factor changes at all
 t_stop = 4e-12
 
 vacuum = td.Medium(permittivity = 1, name = 'vacuum') # For inverse design calculations, take the permittivity to be a little higher
