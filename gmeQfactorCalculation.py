@@ -1,3 +1,5 @@
+##### The functions are written with future autograd integration in mind ####
+
 pip install legume-gme
 
 import legume
