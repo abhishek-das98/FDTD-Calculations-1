@@ -1,7 +1,8 @@
-##### The functions are written with future autograd integration in mind ####
+
 
 pip install legume-gme
 
+# Commented out IPython magic to ensure Python compatibility.
 import legume
 
 import numpy as np
@@ -10,8 +11,8 @@ import time
 
 from legume.minimize import Minimize
 
-%load_ext autoreload
-%autoreload 2
+# %load_ext autoreload
+# %autoreload 2
 
 central_radius = 0.3550
 slab_height = 0.2
@@ -21,9 +22,9 @@ ring_period = 0.155
 
 GaAs_permittivity = 12.25
 
-Lx, Ly = 6, 6
+Lx, Ly = 8, 8
 
-def rings(dcenter, dperiod): # The function calculates the structure given the deviations from the initial central ring radius and ring period
+def rings(dcenter, dperiod):
 
 
   lattice = legume.Lattice([Lx, 0], [0, Ly])
@@ -57,11 +58,9 @@ def rings(dcenter, dperiod): # The function calculates the structure given the d
 
   return phc
 
-# For visualizing the structure
 phc = rings(0.0, 0.0)
 legume.viz.structure(phc, yz=True, figsize=4., cbar=True)
 
-# This function calculates the kpoints given the number of k points and lattice constants
 def get_kpoints(Lx, Ly, nkx, nky):
 
   # sample nkx and nky points in {kx, ky} space in a uniform grid
@@ -77,13 +76,12 @@ def get_kpoints(Lx, Ly, nkx, nky):
 
   return kpoints
 
-
-def gme_cavity(dx, dy, gmax, truncate_g, options): # function for running the gme simulation
+def gme_cavity(dx, dy, gmax, truncate_g, options):
 
   bullseye = rings(dx, dy)
 
-  options['compute_im'] = False      
- 
+  options['compute_im'] = False
+
   gme = legume.GuidedModeExp(bullseye, gmax = gmax, truncate_g = truncate_g)
 
   kpoints_number = 2
@@ -91,17 +89,22 @@ def gme_cavity(dx, dy, gmax, truncate_g, options): # function for running the gm
 
   gme.run(kpoints = kpoints, **options)
 
-  (freq_im, _, _) = gme.compute_rad(0, [1100])
 
-  Q = gme.freqs[0, 1100]/2/freq_im[0]
+  return gme
 
-  return(gme, Q)
+def Q_factor_calculation(gme, mode_index):
+
+  (freq_im, _, _) = gme.compute_rad(0, [mode_index])
+
+  Q = gme.freqs[0, mode_index]/2/freq_im[0]
+
+  return Q
 
 options = {
     'gmode_inds': [0],
     'verbose': True,
-    'numeig': 1500,
-    #'eig_sigma': 1.07,
+    'numeig': 100,
+    'eig_sigma': 1.07,
     'gradients': 'approx'
 }
 
@@ -111,14 +114,42 @@ truncate_g = 'abs'
 dx = 0.0
 dy = 0.0
 
-(gme, Q) = gme_cavity(dx, dy, gmax, truncate_g, options)
+gme = gme_cavity(dx, dy, gmax, truncate_g, options)
 
-# Print the computed quality factor
-print("Cavity quality factor: %1.2f" %Q)
+from matplotlib.backends.backend_pdf import PdfPages
 
-# We can also visualize the cavity and the mode profile of the fundamental mode
+with PdfPages('cavity_mode_profile_Ey.pdf') as pdf:
+  for index in range(35, 45):
 
-ax = legume.viz.field(gme, 'e', 0, 1100, z=slab_height/2, component='x', val='abs', N1=300, N2=200)
+    # Print the computed quality factor
+    print(f"index number {index}")
+    Q_factor = Q_factor_calculation(gme, index)
+    print("Cavity quality factor: %1.2f" %Q_factor)
+
+    # We can also visualize the cavity and the mode profile of the fundamental mode
+
+    plt.figure()
+    ax = legume.viz.field(gme, 'e', 0, index, z=slab_height/2, component='y', val='abs', N1=300, N2=200)
 
 
+    pdf.savefig(bbox_inches='tight')
+    plt.close()
 
+from matplotlib.backends.backend_pdf import PdfPages
+
+with PdfPages('cavity_mode_profile_Ex.pdf') as pdf:
+  for index in range(35, 45):
+
+    # Print the computed quality factor
+    print(f"index number {index}")
+    Q_factor = Q_factor_calculation(gme, index)
+    print("Cavity quality factor: %1.2f" %Q_factor)
+
+    # We can also visualize the cavity and the mode profile of the fundamental mode
+
+    plt.figure()
+    ax = legume.viz.field(gme, 'e', 0, index, z=slab_height/2, component='x', val='abs', N1=300, N2=200)
+
+
+    pdf.savefig(bbox_inches='tight')
+    plt.close()
